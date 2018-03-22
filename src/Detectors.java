@@ -87,7 +87,6 @@ public class Detectors {
                     Imgproc.circle(this.frame, center, (int)r, green, 2);
                 }
             }
-
             centers.add(center);
         }
 

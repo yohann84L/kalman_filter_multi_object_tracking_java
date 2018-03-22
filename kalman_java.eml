@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component inherit-compiler-output="true" inheritJdk="true">
+	<output-test url="file://$MODULE_DIR$/out/test/kalman_java"/>
+	<exclude-output/>
+	<contentEntry url="file://$MODULE_DIR$"/>
+	<lib name="opencv-340.jar" scope="COMPILE">
+		<srcroot url="jar:///usr/local/Cellar/opencv/3.4.0_1/share/OpenCV/java/opencv-340.jar!/"/>
+	</lib>
+</component>

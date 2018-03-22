@@ -138,7 +138,7 @@ public class VideoController {
             if(centers.size() > 0) {
 
             }
-            
+
             frame = Detectors.getInstance().getFrame();
         }
 
