@@ -1,3 +1,4 @@
+import org.ejml.simple.SimpleMatrix;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.inverse.InvertMatrix;
@@ -9,24 +10,36 @@ import org.nd4j.linalg.inverse.InvertMatrix;
  Reference: https://en.wikipedia.org/wiki/Kalman_filter
  Attributes: None
  */
-public class KalmanFilter {
+public class KalmanF {
 
     private double dt = 0.005;  // delta time
 
-    private INDArray A = Nd4j.create(new int[]{1,0,0,1}, new int[]{2,2}); // matrix in observation equations
-    private INDArray u = Nd4j.zeros(new int[]{2,1}); // previous state vector
+    private SimpleMatrix A;
+    private SimpleMatrix u;
 
     // (x,y) tracking object center
-    private INDArray b = Nd4j.create(new int[]{0,255}, new int[]{2,1}); // vector of observations
-    private INDArray P = Nd4j.diag(Nd4j.create(new int[]{3,3}, new int[]{2,2})); // covariance matrix
-    private INDArray F = Nd4j.create(new double[]{1.0, this.dt, 0.0, 1.0}, new int[]{2,2}); // state transition mat
+    private SimpleMatrix b;
+    private SimpleMatrix P;
+    private SimpleMatrix F;
 
-    private INDArray Q = Nd4j.eye(u.shape()[0]); // process noise matrix
-    private INDArray R = Nd4j.eye(b.shape()[0]); // observation noise matrix
-    private INDArray lastResult = Nd4j.create(new int[]{0,255}, new int[]{2,1});
+    private SimpleMatrix Q;
+    private SimpleMatrix R;
+    private SimpleMatrix lastResult;
 
 
+    public KalmanF() {
+        A = new SimpleMatrix(new double[][]{{1,0},{0,1}}); // matrix in observation equations
+        u = new SimpleMatrix(new double[][]{{0},{0}}); // previous state vector
 
+        b = Nd4j.create(new int[]{0,255}, new int[]{2,1}); // vector of observations
+        P = Nd4j.diag(Nd4j.create(new int[]{3,3}, new int[]{2,2})); // covariance matrix
+        F = Nd4j.create(new double[]{1.0, this.dt, 0.0, 1.0}, new int[]{2,2}); // state transition mat
+
+        Q = Nd4j.eye(u.shape()[0]); // process noise matrix
+        R = Nd4j.eye(b.shape()[0]); // observation noise matrix
+        lastResult = Nd4j.create(new int[]{0,255}, new int[]{2,1});
+
+    }
 
     /** Predict state vector u and variance of uncertainty P (covariance).
      where,
@@ -75,7 +88,7 @@ public class KalmanFilter {
      */
     public INDArray correct(INDArray b, boolean flag) {
         if(!flag) { // update using prediction
-            this.b = this.lastResult;
+            this.b = lastResult;
         } else {
             this.b = b;
 
@@ -87,6 +100,10 @@ public class KalmanFilter {
             lastResult = u;
         }
 
-        return this.u;
+        return u;
+    }
+
+    public void setLastResult(INDArray lastResult) {
+        this.lastResult = lastResult;
     }
 }

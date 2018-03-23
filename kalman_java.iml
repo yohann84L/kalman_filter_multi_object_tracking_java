@@ -21,16 +21,19 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="library" name="org.nd4j:nd4j-api:0.0.3.5.5.2" level="project" />
-    <orderEntry type="library" name="org.deeplearning4j:deeplearning4j-core:0.4-rc1.2" level="project" />
-    <orderEntry type="module-library" exported="">
+    <orderEntry type="library" name="junit:junit:4.12" level="project" />
+    <orderEntry type="library" name="com.google.guava:guava:18.0" level="project" />
+    <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$USER_HOME$/Downloads/nd4j-api-0.9.1.jar!/" />
+          <root url="jar://$USER_HOME$/Downloads/nd4j-api-0.8.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="org.nd4j:nd4j-buffer:0.9.1" level="project" />
+    <orderEntry type="library" name="org.slf4j:slf4j-jdk14:1.7.12" level="project" />
+    <orderEntry type="library" name="org.ejml:ejml-all:0.33" level="project" />
   </component>
 </module>

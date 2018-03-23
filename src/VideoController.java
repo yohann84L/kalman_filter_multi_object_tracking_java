@@ -57,6 +57,22 @@ public class VideoController {
 
     private String videoUrl = "/Users/yohannmbp/Desktop/video_test/v0/60fps/540p_ombre.mov";
 
+    private Tracker tracker = new Tracker(160, 30, 200, 100);
+
+    // Color
+    private final Scalar blue = new Scalar(255, 0, 0);
+    private final Scalar green = new Scalar(0, 255, 0);
+    private final Scalar red = new Scalar(0, 0, 255);
+    private final Scalar cyan = new Scalar (255, 255, 0);
+    private final Scalar yellow = new Scalar(0, 255, 255);
+    private final Scalar magenta = new Scalar(255, 0, 255);
+    private final Scalar pink = new Scalar(255, 127, 255);
+    private final Scalar purple = new Scalar(127, 0, 255);
+    private final Scalar purpleblack = new Scalar(127, 0, 127);
+
+    private final ArrayList<Scalar> trackColors = new ArrayList<>();
+
+
     /**
      * Initialize method, automatically called by @{link FXMLLoader}
      */
@@ -64,6 +80,17 @@ public class VideoController {
         this.capture = new VideoCapture();
         this.threshold = new Slider();
         this.cameraActive = false;
+
+        trackColors.add(blue);
+        trackColors.add(green);
+        trackColors.add(red);
+        trackColors.add(cyan);
+        trackColors.add(yellow);
+        trackColors.add(magenta);
+        trackColors.add(pink);
+        trackColors.add(purple);
+        trackColors.add(purpleblack);
+
     }
 
     /**
@@ -136,6 +163,22 @@ public class VideoController {
 
             // If centroids are detected then track them
             if(centers.size() > 0) {
+
+                // Track object using Kalman Filter
+                tracker.Update(centers);
+
+                for(int i = 0; i < tracker.getTracks().size(); i++) {
+                    if(tracker.getTracks().get(i).getTrace().size() > 1) {
+                        for(int j = 0; j < tracker.getTracks().size() - 1; j++) {
+                            // Draw trace line
+                            Point pt1 = tracker.getTracks().get(i).getTrace().get(j);
+                            Point pt2 = tracker.getTracks().get(i).getTrace().get(j+1);
+
+                            int clr = tracker.getTracks().get(i).getTrack_id() % 9;
+                            Imgproc.line(frame, pt1, pt2, trackColors.get(clr), 4);
+                        }
+                    }
+                }
 
             }
 
