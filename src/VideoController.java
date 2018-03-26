@@ -32,15 +32,6 @@ public class VideoController {
     private Button button;
     // the FXML grayscale checkbox
     @FXML
-    private CheckBox grayscale;
-    // the FXML logo checkbox
-    @FXML
-    private CheckBox logoCheckBox;
-    // the FXML grayscale checkbox
-    @FXML
-    private ImageView histogram;
-    // the FXML area for showing the current frame
-    @FXML
     private ImageView currentFrame;
 
     @FXML
@@ -55,7 +46,11 @@ public class VideoController {
     // the logo to be loaded
     private Mat logo;
 
-    private String videoUrl = "/Users/yohannmbp/Desktop/video_test/v0/60fps/540p_ombre.mov";
+    public static final String videoSize = "360p";
+    private String framerateVideo = "60fps";
+    private String shadow = "ombre";
+
+    private String videoUrl = "/Users/yohannmbp/Desktop/video_test/v0/"+framerateVideo+"/"+videoSize+"_"+shadow+".mov";
 
     private Tracker tracker = new Tracker(160, 30, 200, 100);
 
@@ -90,7 +85,6 @@ public class VideoController {
         trackColors.add(pink);
         trackColors.add(purple);
         trackColors.add(purpleblack);
-
     }
 
     /**
@@ -173,6 +167,9 @@ public class VideoController {
                             // Draw trace line
                             Point pt1 = tracker.getTracks().get(i).getTrace().get(j);
                             Point pt2 = tracker.getTracks().get(i).getTrace().get(j+1);
+
+                            System.out.println(pt1);
+                            System.out.println(pt2);
 
                             int clr = tracker.getTracks().get(i).getTrack_id() % 9;
                             Imgproc.line(frame, pt1, pt2, trackColors.get(clr), 4);
