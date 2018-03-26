@@ -1,4 +1,3 @@
-import org.nd4j.linalg.api.ndarray.INDArray;
 import org.opencv.core.Point;
 
 import java.lang.reflect.Array;
@@ -22,6 +21,7 @@ public class Track {
         this.prediction = prediction;
         KF = new KalmanF();
         this.skippedFrames = 0;
+        this.trace = new ArrayList<>();
     }
 
     public Point getPrediction() {

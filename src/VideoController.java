@@ -169,7 +169,7 @@ public class VideoController {
 
                 for(int i = 0; i < tracker.getTracks().size(); i++) {
                     if(tracker.getTracks().get(i).getTrace().size() > 1) {
-                        for(int j = 0; j < tracker.getTracks().size() - 1; j++) {
+                        for(int j = 0; j < tracker.getTracks().get(i).getTrace().size() - 1; j++) {
                             // Draw trace line
                             Point pt1 = tracker.getTracks().get(i).getTrace().get(j);
                             Point pt2 = tracker.getTracks().get(i).getTrace().get(j+1);

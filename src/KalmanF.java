@@ -1,7 +1,4 @@
 import org.ejml.simple.SimpleMatrix;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.inverse.InvertMatrix;
 
 /**
  Kalman Filter class keeps track of the estimated state of
@@ -29,16 +26,15 @@ public class KalmanF {
 
     public KalmanF() {
         A = new SimpleMatrix(new double[][]{{1,0},{0,1}}); // matrix in observation equations
-        u = new SimpleMatrix(new double[][]{{0},{0}}); // previous state vector
+        u = new SimpleMatrix(2,1); // previous state vector
 
-        b = Nd4j.create(new int[]{0,255}, new int[]{2,1}); // vector of observations
-        P = Nd4j.diag(Nd4j.create(new int[]{3,3}, new int[]{2,2})); // covariance matrix
-        F = Nd4j.create(new double[]{1.0, this.dt, 0.0, 1.0}, new int[]{2,2}); // state transition mat
+        b = new SimpleMatrix(new double[][]{{0},{255}}); // vector of observations
+        P = new SimpleMatrix(new double[][]{{3,0},{0,3}}); // covariance matrix
+        F = new SimpleMatrix(new double[][]{{1,dt},{0,1}}); // state transition mat
 
-        Q = Nd4j.eye(u.shape()[0]); // process noise matrix
-        R = Nd4j.eye(b.shape()[0]); // observation noise matrix
-        lastResult = Nd4j.create(new int[]{0,255}, new int[]{2,1});
-
+        Q = SimpleMatrix.identity(2); // process noise matrix
+        R = SimpleMatrix.identity(2); // observation noise matrix
+        lastResult = new SimpleMatrix(new double[][]{{0},{255}});
     }
 
     /** Predict state vector u and variance of uncertainty P (covariance).
@@ -54,11 +50,11 @@ public class KalmanF {
      F.T is F transpose
      * @return vector of predicted state estimate
      */
-    public INDArray predict() {
+    public SimpleMatrix predict() {
         // Predicted state estimate
-        u = P.mmul(F.transpose());
+        u = roundMatrix(F.mult(u));
         // Predicted estimate covariance
-        P = Q.add(F.mmul(P.mmul(F.transpose())));
+        P = Q.plus(F.mult(P.mult(F.transpose())));
         lastResult = u; // same last predicted result
 
         return u;
@@ -86,24 +82,33 @@ public class KalmanF {
      * @param flag if "true" prediction result will be updated else detection
      * @return predicted state vector u
      */
-    public INDArray correct(INDArray b, boolean flag) {
+    public SimpleMatrix correct(SimpleMatrix b, boolean flag) {
         if(!flag) { // update using prediction
             this.b = lastResult;
         } else {
             this.b = b;
 
-            INDArray C = R.add(A.mmul(P.mmul(A.transpose())));
-            INDArray K = P.mmul(A.transpose().mmul(InvertMatrix.invert(C, true)));
+            SimpleMatrix C = R.plus(A.mult(P.mult(A.transpose())));
+            SimpleMatrix K = P.plus(A.transpose().mult(C.invert()));
 
-            u = u.add(K.mmul(b.neq(A.mmul(u))));
-            P = P.neq(K.mmul(C.mmul(K.transpose())));
+            u = roundMatrix(u.plus(K.mult(b.minus(A.mult(u)))));
+            P = P.minus(K.mult(C.mult(K.transpose())));
             lastResult = u;
         }
 
         return u;
     }
 
-    public void setLastResult(INDArray lastResult) {
+    public void setLastResult(SimpleMatrix lastResult) {
         this.lastResult = lastResult;
+    }
+
+    private SimpleMatrix roundMatrix(SimpleMatrix M) {
+        for(int j = 0; j < M.numCols(); j++) {
+            for(int i = 0; i < M.numRows(); i++) {
+                M.set(i, j, Math.round(M.get(i, j)));
+            }
+        }
+        return M;
     }
 }

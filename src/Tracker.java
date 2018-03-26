@@ -1,8 +1,6 @@
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
-import org.junit.Assert;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
+import org.ejml.simple.SimpleMatrix;
 import org.opencv.core.Point;
 
 import java.lang.reflect.Array;
@@ -67,23 +65,23 @@ public class Tracker {
         // predicted vs detected centroids
         int N = tracks.size();
         int M = detections.size();
-        INDArray cost = Nd4j.zeros(new int[]{N,M}); // Cost matrix
+        double[][] cost = new double[N][M]; // Cost matrix
         for(int i = 0; i < N; i++) {
             for(int j = 0; j < M; j++) {
                 Point diff = diffPoint(tracks.get(i).getPrediction(),detections.get(j));
                 double distance = Math.sqrt(diff.x*diff.x + diff.y*diff.y);
-                cost.putScalar(new int[]{i,j}, distance);
+                cost[i][j] = distance*0.5;
             }
         }
 
         // Let's average the squared ERROR
-        cost = cost.mul(0.5);
+        //cost = cost.mul(0.5);
         // Using Hungarian Algorithm assign the correct detected measurements
         // to predicted tracks
         //INDArray assigment = Nd4j.zeros(N);
         //assigment.add(-1);
 
-        int[] assigmentL = new HungarianAlgorithm(INDArrayToDouble(cost)).execute();
+        int[] assigmentL = new HungarianAlgorithm(cost).execute();
         List<Integer> assigment = Lists.newArrayList(Ints.asList(assigmentL));
 
         //  Identify tracks with no assignment, if any
@@ -92,7 +90,7 @@ public class Tracker {
             if(assigment.get(i) != -1) {
                 // check for cost distance threshold.
                 // If cost is very high then un_assign (delete) the track
-                if(cost.getDouble(i, assigment.get(i)) > distThresh) {
+                if(cost[i][assigment.get(i)] > distThresh) {
                     assigment.set(i, -1);
                     unAssignedTracks.add(i);
                 } else {
@@ -144,7 +142,7 @@ public class Tracker {
                 tracks.get(i).setSkippedFrames(0);
                 tracks.get(i).setPrediction(stateVectorToPoint(tracks.get(i).getKF().correct(pointToStateVector(detections.get(assigment.get(i))), true)));
             } else {
-                tracks.get(i).setPrediction(stateVectorToPoint(tracks.get(i).getKF().correct(Nd4j.create(new int[]{0,0}, new int[]{2,1}), false)));
+                tracks.get(i).setPrediction(stateVectorToPoint(tracks.get(i).getKF().correct(new SimpleMatrix(new double[][]{{0},{0}}), false)));
             }
 
             if(tracks.get(i).getTrace().size() > maxTraceLength) {
@@ -163,28 +161,12 @@ public class Tracker {
         return new Point(A.x-B.x, A.y- B.y);
     }
 
-    private double[][] INDArrayToDouble(INDArray array) {
-        int N = array.shape()[0];
-        int M = array.shape()[1];
-        double[][] doubleArray = new double[N][M];
-
-        for(int i = 0; i < N; i ++) {
-            for(int j = 0; j < M; j ++) {
-                doubleArray[i][j] = array.getDouble(i,j);
-            }
-        }
-
-        return doubleArray;
+    private Point stateVectorToPoint(SimpleMatrix u) {
+        return new Point(u.get(0,0), u.get(1,0));
     }
 
-    private Point stateVectorToPoint(INDArray u) {
-        Assert.assertEquals(new int[]{2,1}, u.shape());
-
-        return new Point(u.getDouble(1), u.getDouble(2));
-    }
-
-    private INDArray pointToStateVector(Point p) {
+    private SimpleMatrix pointToStateVector(Point p) {
         Double[] d = new Double[]{p.x, p.y};
-        return Nd4j.create(new int[]{d[0].intValue(), d[1].intValue()}, new int[]{2,1});
+        return new SimpleMatrix(new double[][]{{d[0].intValue()}, {d[1].intValue()}});
     }
 }
