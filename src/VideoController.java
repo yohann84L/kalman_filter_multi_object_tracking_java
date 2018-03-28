@@ -46,7 +46,7 @@ public class VideoController {
     // the logo to be loaded
     private Mat logo;
 
-    public static final String videoSize = "360p";
+    public static final String videoSize = "540p";
     private String framerateVideo = "60fps";
     private String shadow = "ombre";
 
@@ -168,8 +168,8 @@ public class VideoController {
                             Point pt1 = tracker.getTracks().get(i).getTrace().get(j);
                             Point pt2 = tracker.getTracks().get(i).getTrace().get(j+1);
 
-                            System.out.println(pt1);
-                            System.out.println(pt2);
+                            //System.out.println("Point 1 = "+pt1.x+" : "+pt1.y);
+                            //System.out.println("Point 2 = "+pt2.x+" : "+pt2.y+"\n");
 
                             int clr = tracker.getTracks().get(i).getTrack_id() % 9;
                             Imgproc.line(frame, pt1, pt2, trackColors.get(clr), 4);

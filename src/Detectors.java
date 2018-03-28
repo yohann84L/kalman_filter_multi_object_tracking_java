@@ -107,8 +107,8 @@ public class Detectors {
                 pInfRight = new Point(870, 460);
                 break;
             case "720p" :
-                pSupLeft = new Point(100, 20);
-                pInfRight = new Point(870, 460);
+                pSupLeft = new Point(130, 30);
+                pInfRight = new Point(1170, 610);
                 break;
             case "1080p" :
                 pSupLeft = new Point(100, 20);

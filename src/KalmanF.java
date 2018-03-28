@@ -48,16 +48,14 @@ public class KalmanF {
      P_{k|k-1} = FP_{k-1|k-1} F.T + Q
      where,
      F.T is F transpose
-     * @return vector of predicted state estimate
+     * return vector of predicted state estimate
      */
-    public SimpleMatrix predict() {
+    public void predict() {
         // Predicted state estimate
         u = roundMatrix(F.mult(u));
         // Predicted estimate covariance
-        P = Q.plus(F.mult(P.mult(F.transpose())));
+        P = F.mult(P.mult(F.transpose())).plus(Q);
         lastResult = u; // same last predicted result
-
-        return u;
     }
 
 
@@ -88,10 +86,10 @@ public class KalmanF {
         } else {
             this.b = b;
 
-            SimpleMatrix C = R.plus(A.mult(P.mult(A.transpose())));
-            SimpleMatrix K = P.plus(A.transpose().mult(C.invert()));
+            SimpleMatrix C = A.mult(P).mult(A.transpose()).plus(R);
+            SimpleMatrix K = P.mult(A.transpose().mult(C.invert()));
 
-            u = roundMatrix(u.plus(K.mult(b.minus(A.mult(u)))));
+            u = roundMatrix(u.plus(K.mult(this.b.minus(A.mult(u)))));
             P = P.minus(K.mult(C.mult(K.transpose())));
             lastResult = u;
         }

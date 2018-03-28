@@ -68,14 +68,13 @@ public class Tracker {
         double[][] cost = new double[N][M]; // Cost matrix
         for(int i = 0; i < N; i++) {
             for(int j = 0; j < M; j++) {
-                Point diff = diffPoint(tracks.get(i).getPrediction(),detections.get(j));
+                Point diff = diffPoint(tracks.get(i).getPrediction(), detections.get(j));
                 double distance = Math.sqrt(diff.x*diff.x + diff.y*diff.y);
+                // Let's average the squared ERROR
                 cost[i][j] = distance*0.5;
             }
         }
 
-        // Let's average the squared ERROR
-        //cost = cost.mul(0.5);
         // Using Hungarian Algorithm assign the correct detected measurements
         // to predicted tracks
         //INDArray assigment = Nd4j.zeros(N);
@@ -142,7 +141,7 @@ public class Tracker {
                 tracks.get(i).setSkippedFrames(0);
                 tracks.get(i).setPrediction(stateVectorToPoint(tracks.get(i).getKF().correct(pointToStateVector(detections.get(assigment.get(i))), true)));
             } else {
-                tracks.get(i).setPrediction(stateVectorToPoint(tracks.get(i).getKF().correct(new SimpleMatrix(new double[][]{{0},{0}}), false)));
+                tracks.get(i).setPrediction(stateVectorToPoint(tracks.get(i).getKF().correct(new SimpleMatrix(new double[][]{{0}, {0}}), false)));
             }
 
             if(tracks.get(i).getTrace().size() > maxTraceLength) {
