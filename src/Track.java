@@ -1,6 +1,5 @@
 import org.opencv.core.Point;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -11,7 +10,7 @@ import java.util.ArrayList;
 public class Track {
 
     private int track_id;  // identification of each track object
-    private KalmanF KF;  // KF instance to track this object
+    private KalmanFilter KF;  // KF instance to track this object
     private Point prediction; // predicted centroids (x,y)
     private int skippedFrames; // number of frames skipped undetected
     private ArrayList<Point> trace;  // trace path
@@ -19,7 +18,7 @@ public class Track {
     public Track(Point prediction, int track_id) {
         this.track_id = track_id;
         this.prediction = prediction;
-        KF = new KalmanF();
+        KF = new KalmanFilter();
         this.skippedFrames = 0;
         this.trace = new ArrayList<>();
     }
@@ -44,7 +43,7 @@ public class Track {
         this.skippedFrames = skippedFrames;
     }
 
-    public KalmanF getKF() {
+    public KalmanFilter getKF() {
         return KF;
     }
 

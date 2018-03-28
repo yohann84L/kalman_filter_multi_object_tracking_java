@@ -7,7 +7,7 @@ import org.ejml.simple.SimpleMatrix;
  Reference: https://en.wikipedia.org/wiki/Kalman_filter
  Attributes: None
  */
-public class KalmanF {
+public class KalmanFilter {
 
     private double dt = 0.005;  // delta time
 
@@ -24,7 +24,7 @@ public class KalmanF {
     private SimpleMatrix lastResult;
 
 
-    public KalmanF() {
+    public KalmanFilter() {
         A = new SimpleMatrix(new double[][]{{1,0},{0,1}}); // matrix in observation equations
         u = new SimpleMatrix(2,1); // previous state vector
 
