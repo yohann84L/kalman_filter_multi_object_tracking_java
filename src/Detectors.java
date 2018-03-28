@@ -8,11 +8,10 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Detectors {
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-    // Rectangle Limit
-    private final Point pSupLeft = new Point(100, 20);
-    private final Point pInfRight = new Point(870, 460);
+public class Detectors {
 
     // Color
     private final Scalar yellow = new Scalar(0, 255, 255);
@@ -72,7 +71,7 @@ public class Detectors {
 
         int blobRadiusThresh = 10;
 
-        Imgproc.rectangle(this.frame, pSupLeft, pInfRight, yellow,4);
+        Imgproc.rectangle(this.frame, rectLimit(VideoController.videoSize)[0], rectLimit(VideoController.videoSize)[1], yellow,4);
 
 
         for (MatOfPoint cnt : contours) {
@@ -85,11 +84,41 @@ public class Detectors {
             for(float r : radius) {
                 if ((int)r > blobRadiusThresh) {
                     Imgproc.circle(this.frame, center, (int)r, green, 2);
+                    centers.add(center);
                 }
             }
-            centers.add(center);
         }
 
         return centers;
+    }
+
+
+    private Point[] rectLimit(String videoSize) {
+        Point pSupLeft = null;
+        Point pInfRight = null;
+
+        switch (videoSize) {
+            case "360p" :
+                pSupLeft = new Point(70, 10);
+                pInfRight = new Point(570, 300);
+                break;
+            case "540p" :
+                pSupLeft = new Point(100, 20);
+                pInfRight = new Point(870, 460);
+                break;
+            case "720p" :
+                pSupLeft = new Point(130, 30);
+                pInfRight = new Point(1170, 610);
+                break;
+            case "1080p" :
+                pSupLeft = new Point(100, 20);
+                pInfRight = new Point(870, 460);
+                break;
+        }
+
+        assertNotNull(pSupLeft);
+        assertNotNull(pInfRight);
+
+        return new Point[]{pSupLeft, pInfRight};
     }
 }
