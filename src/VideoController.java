@@ -52,7 +52,7 @@ public class VideoController {
 
     private String videoUrl = "/Users/yohannmbp/Desktop/video_test/v0/"+framerateVideo+"/"+videoSize+"_"+shadow+".mov";
 
-    private Tracker tracker = new Tracker(160, 30, 200, 100);
+    private Tracker tracker = new Tracker(160, 30, 30, 100);
 
     // Color
     private final Scalar blue = new Scalar(255, 0, 0);
@@ -168,11 +168,8 @@ public class VideoController {
                             Point pt1 = tracker.getTracks().get(i).getTrace().get(j);
                             Point pt2 = tracker.getTracks().get(i).getTrace().get(j+1);
 
-                            //System.out.println("Point 1 = "+pt1.x+" : "+pt1.y);
-                            //System.out.println("Point 2 = "+pt2.x+" : "+pt2.y+"\n");
-
                             int clr = tracker.getTracks().get(i).getTrack_id() % 9;
-                            Imgproc.line(frame, pt1, pt2, trackColors.get(clr), 4);
+                            Imgproc.line(frame, pt1, pt2, trackColors.get(clr), 2);
                         }
                     }
                 }

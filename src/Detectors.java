@@ -84,9 +84,9 @@ public class Detectors {
             for(float r : radius) {
                 if ((int)r > blobRadiusThresh) {
                     Imgproc.circle(this.frame, center, (int)r, green, 2);
+                    centers.add(center);
                 }
             }
-            centers.add(center);
         }
 
         return centers;
