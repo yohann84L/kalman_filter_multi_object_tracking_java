@@ -17,8 +17,6 @@ public class Detectors {
     private final Scalar yellow = new Scalar(0, 255, 255);
     private final Scalar green = new Scalar(0, 255, 0);
 
-    // List of center
-
     private Mat frame;
 
     private static Detectors instance = null;
@@ -56,20 +54,24 @@ public class Detectors {
         Mat fgmask = new Mat();
         fgbg.apply(grayFrame, fgmask);
 
-        // Detect edges
-        Mat edges = new Mat();
-        Imgproc.Canny(fgmask, edges, 50.0, 190.0);
+        // Blur the image to delete the noise
+        Mat fgmaskBlur = new Mat();
+        Imgproc.GaussianBlur(fgmask, fgmaskBlur, new Size(7,7),0);
 
         // Retain only edges within the threshold
-        Mat tresh = new Mat();
-        Imgproc.threshold(edges, tresh, 127.0, 255.0, 3);
+        Mat thresh = new Mat();
+        Imgproc.threshold(fgmaskBlur, thresh, 210, 255, Imgproc.THRESH_BINARY);
+
+        // Detect edges
+        Mat edges = new Mat();
+        Imgproc.Canny(thresh, edges, 220, 255);
 
         // Find contours
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierachy = new Mat();
-        Imgproc.findContours(tresh, contours, hierachy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(edges, contours, hierachy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-        int blobRadiusThresh = 10;
+        int blobRadiusThresh = 8;
 
         Imgproc.rectangle(this.frame, rectLimit(VideoController.videoSize)[0], rectLimit(VideoController.videoSize)[1], yellow,4);
 
@@ -82,7 +84,7 @@ public class Detectors {
             Imgproc.minEnclosingCircle(cnt2f, center, radius);
 
             for(float r : radius) {
-                if ((int)r > blobRadiusThresh) {
+                if ((int)r > blobRadiusThresh && (int)r < 20) {
                     Imgproc.circle(this.frame, center, (int)r, green, 2);
                     centers.add(center);
                 }
