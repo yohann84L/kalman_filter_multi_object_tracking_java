@@ -52,7 +52,7 @@ public class VideoController {
 
     private String videoUrl = "/Users/yohannmbp/Desktop/video_test/v0/"+framerateVideo+"/"+videoSize+"_"+shadow+".mov";
 
-    private Tracker tracker = new Tracker(160, 30, 30, 100);
+    private Tracker tracker = new Tracker(200, 30, 300, 100);
 
     // Color
     private final Scalar blue = new Scalar(255, 0, 0);
@@ -179,6 +179,7 @@ public class VideoController {
             frame = Detectors.getInstance().getFrame();
         }
 
+        //return Detectors.edges;
         return frame;
     }
 
