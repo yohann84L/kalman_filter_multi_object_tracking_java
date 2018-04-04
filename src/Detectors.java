@@ -4,6 +4,7 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.video.BackgroundSubtractorMOG2;
 import org.opencv.video.Video;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,11 @@ public class Detectors {
     private final Scalar green = new Scalar(0, 255, 0);
 
     private Mat frame;
+    private Mat outerBox = new Mat();
+    private Mat diff_frame = null;
+    private Mat tempon_frame = null;
+
+    private int i = 0;
 
     private static Detectors instance = null;
 
@@ -39,59 +45,94 @@ public class Detectors {
 
     public ArrayList<Point> detect(Mat frame, double thresholdValue) {
 
-        thresholdValue = 50;
-
+        ArrayList<Point> centers = new ArrayList<>();
         this.frame = frame;
 
-        // List of the centers
-        ArrayList<Point> centers = new ArrayList<>();
+        // Do the processImg()
+        Mat imagProcess = processImg();
 
-        // Convert BGR to GRAY
-        Mat grayFrame = new Mat();
-        Imgproc.cvtColor(this.frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
-
-        // Perform background substraction
-        Mat fgmask = new Mat();
-        fgbg.apply(grayFrame, fgmask);
-
-        // Blur the image to delete the noise
-        Mat fgmaskBlur = new Mat();
-        Imgproc.GaussianBlur(fgmask, fgmaskBlur, new Size(7,7),0);
-
-        // Retain only edges within the threshold
-        Mat thresh = new Mat();
-        Imgproc.threshold(fgmaskBlur, thresh, 210, 255, Imgproc.THRESH_BINARY);
-
-        // Detect edges
-        Mat edges = new Mat();
-        Imgproc.Canny(thresh, edges, 220, 255);
-
-        // Find contours
-        List<MatOfPoint> contours = new ArrayList<>();
-        Mat hierachy = new Mat();
-        Imgproc.findContours(edges, contours, hierachy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
-        int blobRadiusThresh = 8;
-
+        // Draw the yellow rectangle
         Imgproc.rectangle(this.frame, rectLimit(VideoController.videoSize)[0], rectLimit(VideoController.videoSize)[1], yellow,4);
 
+        // Calculate contours
+        ArrayList<Rect> contours = detection_contours(imagProcess);
 
-        for (MatOfPoint cnt : contours) {
-            MatOfPoint2f cnt2f = new MatOfPoint2f();
-            cnt.convertTo(cnt2f, CvType.CV_32F);
-            Point center = new Point();
-            float[] radius = new float[contours.size()];
-            Imgproc.minEnclosingCircle(cnt2f, center, radius);
-
-            for(float r : radius) {
-                if ((int)r > blobRadiusThresh && (int)r < 20) {
-                    Imgproc.circle(this.frame, center, (int)r, green, 2);
-                    centers.add(center);
-                }
+        if (contours.size() > 0) {
+            for (Rect obj : contours) {
+                Point center = rectToCenter(obj);
+                centers.add(center);
+                //Imgproc.rectangle(this.frame, obj.br(), obj.tl(), new Scalar(0, 255, 0), 1);
+                Imgproc.drawMarker(this.frame, rectToCenter(obj), new Scalar(0,255,0), Imgproc.MARKER_CROSS, 20, 2, 1);
             }
+
+        }
+        return centers;
+    }
+
+
+    private Mat processImg() {
+        outerBox = new Mat(this.frame.size(), CvType.CV_8UC1);
+        Imgproc.cvtColor(this.frame, outerBox, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.GaussianBlur(outerBox, outerBox, new Size(5, 5), 0);
+
+        if (i == 0) {
+            tempon_frame = new Mat(outerBox.size(), CvType.CV_8UC1);
+            diff_frame = outerBox.clone();
         }
 
-        return centers;
+        if (i == 1) {
+            Core.subtract(outerBox, tempon_frame, diff_frame);
+            //int blockSize = 9;
+            //int C = 2;
+
+            int blockSize = 21;
+            int C = 6;
+            Imgproc.adaptiveThreshold(diff_frame, diff_frame, 255,
+                    Imgproc.ADAPTIVE_THRESH_MEAN_C,
+                    Imgproc.THRESH_BINARY_INV, blockSize, C);
+        }
+
+        i = 1;
+        tempon_frame = outerBox.clone();
+
+        return diff_frame;
+    }
+
+
+    public ArrayList<Rect> detection_contours(Mat outmat) {
+        Mat v = new Mat();
+        Mat vv = outmat.clone();
+        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        Imgproc.findContours(vv, contours, v, Imgproc.RETR_LIST,
+                Imgproc.CHAIN_APPROX_SIMPLE);
+
+        double maxArea = 150;
+        int maxAreaIdx = -1;
+        Rect r = null;
+        ArrayList<Rect> rect_array = new ArrayList<Rect>();
+
+        for (int idx = 0; idx < contours.size(); idx++) {
+            Mat contour = contours.get(idx);
+            double contourarea = Imgproc.contourArea(contour);
+            if (contourarea > maxArea) {
+                // maxArea = contourarea;
+                maxAreaIdx = idx;
+                r = Imgproc.boundingRect(contours.get(maxAreaIdx));
+                rect_array.add(r);
+                //Imgproc.drawContours(this.frame, contours, maxAreaIdx, new Scalar(0,0, 255));
+            }
+
+        }
+
+        v.release();
+
+        return rect_array;
+
+    }
+
+
+    public static Point rectToCenter(Rect obj) {
+        return new Point(obj.width/2+obj.x, obj.height/2+obj.y);
     }
 
 
