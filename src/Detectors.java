@@ -59,10 +59,15 @@ public class Detectors {
 
         if (contours.size() > 0) {
             for (Rect obj : contours) {
-                Point center = rectToCenter(obj);
-                centers.add(center);
-                //Imgproc.rectangle(this.frame, obj.br(), obj.tl(), new Scalar(0, 255, 0), 1);
-                Imgproc.drawMarker(this.frame, rectToCenter(obj), new Scalar(0,255,0), Imgproc.MARKER_CROSS, 20, 2, 1);
+                int width = 12;
+                int height = 26;
+                if(isEnoughLarge(obj, width,height)) {
+                    Point center = rectToCenter(obj);
+                    centers.add(center);
+                    Imgproc.rectangle(this.frame, new Point(center.x-width/2, center.y-height/2), new Point(center.x+width/2, center.y+height/2), new Scalar(0,255,0));
+                    //Imgproc.rectangle(this.frame, obj.br(), obj.tl(), new Scalar(0, 255, 0), 1);
+                    //Imgproc.drawMarker(this.frame, rectToCenter(obj), new Scalar(0,255,0), Imgproc.MARKER_CROSS, 20, 2, 1);
+                }
             }
 
         }
@@ -131,10 +136,17 @@ public class Detectors {
     }
 
 
-    public static Point rectToCenter(Rect obj) {
+    private static Point rectToCenter(Rect obj) {
         return new Point(obj.width/2+obj.x, obj.height/2+obj.y);
     }
 
+    private static boolean isEnoughLarge(Rect obj, int width, int height) {
+        if(obj.height >= height && obj.width >= width) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     private Point[] rectLimit(String videoSize) {
         Point pSupLeft = null;
