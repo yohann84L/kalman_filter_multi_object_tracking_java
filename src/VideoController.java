@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +15,6 @@ import org.opencv.videoio.VideoCapture;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -198,69 +198,21 @@ public class VideoController {
                             Point pt1 = tracker.getTracks().get(i).getTrace().get(j);
                             Point pt2 = tracker.getTracks().get(i).getTrace().get(j+1);
 
+                            // Count
                             Integer trackId = tracker.getTracks().get(i).getTrack_id();
-
-                            /////////// Entrances in area ///////////
-                            if(Counter.getInstance(rect).crossBottomIn(pt1, pt2, rect) && !crossBottomId.contains(trackId)) {
-                                crossBottomId.add(trackId);
-                            } else if(Counter.getInstance(rect).crossTopIn(pt1, pt2, rect) && !crossTopId.contains(trackId)) {
-                                crossTopId.add(trackId);
-                            } else if(Counter.getInstance(rect).crossLeftIn(pt1, pt2, rect) && !crossLeftId.contains(trackId)) {
-                                crossLeftId.add(trackId);
-                            } else if(Counter.getInstance(rect).crossRightIn(pt1, pt2, rect) && !crossRightId.contains(trackId)) {
-                                crossRightId.add(trackId);
-                            }
-
-                            /////////// Entrances ///////////
-                            if(Counter.getInstance(rect).crossBottomOut(pt1, pt2, rect)) {
-                                if(crossLeftId.contains(trackId) || crossRightId.contains(trackId) || crossTopId.contains(trackId)) {
-                                    entrancesId.add(trackId);
-                                    entrancesIdDrawn.add(trackId);
-                                }
-                            }
-
-                            /////////// Departures ///////////
-                            if((Counter.getInstance(rect).crossLeftOut(pt1, pt2, rect)
-                                    || Counter.getInstance(rect).crossRightOut(pt1, pt2, rect)
-                                    || Counter.getInstance(rect).crossTopOut(pt1, pt2, rect)) && crossBottomId.contains(trackId)) {
-                                departuresId.add(trackId);
-                                departuresId.add(trackId);
-                            }
-
-                            /////////// Flyby ///////////
-                            // Left TO (Top or Right)
-                            if(crossLeftId.contains(trackId)
-                                    && (Counter.getInstance(rect).crossTopOut(pt1, pt2, rect)
-                                    || Counter.getInstance(rect).crossRightOut(pt1, pt2, rect))) {
-                                flybyId.add(trackId);
-                                flybyId.add(trackId);
-                            }
-                            // Right TO (Top or Left)
-                            if(crossRightId.contains(trackId)
-                                    && (Counter.getInstance(rect).crossTopOut(pt1, pt2, rect)
-                                    || Counter.getInstance(rect).crossLeftOut(pt1, pt2, rect))) {
-                                flybyId.add(trackId);
-                                flybyId.add(trackId);
-                            }
-                            // Top TO (Left or Right)
-                            if(crossTopId.contains(trackId) && (Counter.getInstance(rect).crossLeftOut(pt1, pt2, rect)
-                                    || Counter.getInstance(rect).crossRightOut(pt1, pt2, rect))) {
-                                flybyId.add(trackId);
-                                flybyId.add(trackId);
-                            }
-
+                            count(trackId, pt1, pt2);
 
                             int clr = tracker.getTracks().get(i).getTrack_id() % 9;
                             Imgproc.line(frame, pt1, pt2, trackColors.get(clr), 2);
+
+                            //frame = drawTrace(entrancesIdDrawn, green, frame);
+                            //frame = drawTrace(departuresIdDrawn,red, frame);
+                            //frame = drawTrace(flybyIdDrawn, blue, frame);
                         }
                     }
                 }
 
             }
-
-            System.out.println("Entrances : " + entrancesId.size()+"   ||   "+"Departures : "+departuresId.size()+"   ||   "+"Flyby : "+flybyId.size());
-
-
             frame = Detectors.getInstance().getFrame();
         }
 
@@ -274,6 +226,8 @@ public class VideoController {
     private void stopAcquisition() {
         if (this.timer != null && !this.timer.isShutdown()) {
             try {
+                System.out.println("Entrances : " + entrancesId.size()+"   ||   "+"Departures : "+departuresId.size()+"   ||   "+"Flyby : "+flybyId.size());
+
                 // stop the timer
                 this.timer.shutdown();
                 this.timer.awaitTermination(33, TimeUnit.MILLISECONDS);
@@ -304,6 +258,72 @@ public class VideoController {
      */
     protected void setClosed() {
         this.stopAcquisition();
+    }
+
+    private Mat drawTrace(ArrayList<Integer> listId, Scalar color, Mat fr) {
+        if(listId.size() > 0) {
+            for(int id : listId) {
+                Track selectedTrack = tracker.getTracks().stream().filter(track -> track.getTrack_id() == id).findFirst().get();
+                System.out.println(selectedTrack);
+                for(int k = 0; k < selectedTrack.getTrace().size() -1 ; k++) {
+                    Imgproc.line(fr, selectedTrack.getTrace().get(k), selectedTrack.getTrace().get(k+1), color, 2);
+                }
+            }
+            listId.clear();
+        }
+
+        return fr;
+    }
+
+    private void count(int trackId, Point pt1, Point pt2) {
+        /////////// Entrances in area ///////////
+        if(Counter.getInstance(rect).crossBottomIn(pt1, pt2, rect) && !crossBottomId.contains(trackId)) {
+            crossBottomId.add(trackId);
+        } else if(Counter.getInstance(rect).crossTopIn(pt1, pt2, rect) && !crossTopId.contains(trackId)) {
+            crossTopId.add(trackId);
+        } else if(Counter.getInstance(rect).crossLeftIn(pt1, pt2, rect) && !crossLeftId.contains(trackId)) {
+            crossLeftId.add(trackId);
+        } else if(Counter.getInstance(rect).crossRightIn(pt1, pt2, rect) && !crossRightId.contains(trackId)) {
+            crossRightId.add(trackId);
+        }
+
+        /////////// Entrances ///////////
+        if(Counter.getInstance(rect).crossBottomOut(pt1, pt2, rect)) {
+            if(crossLeftId.contains(trackId) || crossRightId.contains(trackId) || crossTopId.contains(trackId)) {
+                entrancesId.add(trackId);
+                entrancesIdDrawn.add(trackId);
+            }
+        }
+
+        /////////// Departures ///////////
+        if((Counter.getInstance(rect).crossLeftOut(pt1, pt2, rect)
+                || Counter.getInstance(rect).crossRightOut(pt1, pt2, rect)
+                || Counter.getInstance(rect).crossTopOut(pt1, pt2, rect)) && crossBottomId.contains(trackId)) {
+            departuresId.add(trackId);
+            departuresIdDrawn.add(trackId);
+        }
+
+        /////////// Flyby ///////////
+        // Left TO (Top or Right)
+        if(crossLeftId.contains(trackId)
+                && (Counter.getInstance(rect).crossTopOut(pt1, pt2, rect)
+                || Counter.getInstance(rect).crossRightOut(pt1, pt2, rect))) {
+            flybyId.add(trackId);
+            flybyIdDrawn.add(trackId);
+        }
+        // Right TO (Top or Left)
+        if(crossRightId.contains(trackId)
+                && (Counter.getInstance(rect).crossTopOut(pt1, pt2, rect)
+                || Counter.getInstance(rect).crossLeftOut(pt1, pt2, rect))) {
+            flybyId.add(trackId);
+            flybyIdDrawn.add(trackId);
+        }
+        // Top TO (Left or Right)
+        if(crossTopId.contains(trackId) && (Counter.getInstance(rect).crossLeftOut(pt1, pt2, rect)
+                || Counter.getInstance(rect).crossRightOut(pt1, pt2, rect))) {
+            flybyId.add(trackId);
+            flybyIdDrawn.add(trackId);
+        }
     }
 
 }

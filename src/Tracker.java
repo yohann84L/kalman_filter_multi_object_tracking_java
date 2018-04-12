@@ -20,6 +20,7 @@ public class Tracker {
     private int maxFramesToSkip;
     private int maxTraceLength;
     private ArrayList<Track> tracks = new ArrayList<>();
+    private ArrayList<Track> allTracks = new ArrayList<>();
     private int trackIdCount;
 
     public Tracker(int distThresh, int maxFramesToSkip, int maxTraceLength, int trackIdCount) {
