@@ -20,8 +20,11 @@ public class Detectors {
 
     private Mat frame;
     private Mat outerBox = new Mat();
+    private Mat outerBox2 = new Mat();
     private Mat diff_frame = null;
     private Mat tempon_frame = null;
+
+    Size sz = new Size(640, 480);
 
     private int i = 0;
 
@@ -76,9 +79,22 @@ public class Detectors {
 
 
     private Mat processImg() {
-        outerBox = new Mat(this.frame.size(), CvType.CV_8UC1);
-        Imgproc.cvtColor(this.frame, outerBox, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.GaussianBlur(outerBox, outerBox, new Size(5, 5), 0);
+        outerBox = new Mat(frame.size(), CvType.CV_8UC1);
+        outerBox2 = new Mat(frame.size(), CvType.CV_8UC1);
+
+        //Suppression des ombres
+        Imgproc.cvtColor(frame, outerBox, Imgproc.COLOR_BGR2HSV); 	//transformation de l'image en HSV
+        for (int k = 0 ; k < sz.width ; k++) { 						//parcourt de tous les pixels
+            for (int h = 0 ; h < sz.height ; h++) {
+                double b = outerBox.get(h, k)[2]; 					//on prend la valeur VALUE du pixel
+                if( b > 100 ) {										//si le pixel est trop clair
+                    outerBox2.put(h, k, 255);						//transforme le pixel en blanc => image binaire
+                }
+            }
+        }
+        //on applique un flou pour rÈcupÈrer une bonne forme pour les abeilles
+        Imgproc.GaussianBlur(outerBox2, outerBox, new Size(3, 3), 0);
+        //la vidÈo a traitÈ par la suite sera "outerBox"
 
         if (i == 0) {
             tempon_frame = new Mat(outerBox.size(), CvType.CV_8UC1);

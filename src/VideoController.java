@@ -47,8 +47,8 @@ public class VideoController {
     private Mat logo;
 
     public static final String videoSize = "540p";
-    private String framerateVideo = "60fps";
-    private String shadow = "ombre";
+    private String framerateVideo = "30fps";
+    private String shadow = "soleil";
 
     private String videoUrl = "/Users/yohannmbp/Desktop/video_test/v0/"+framerateVideo+"/"+videoSize+"_"+shadow+".mov";
 
