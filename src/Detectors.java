@@ -75,7 +75,6 @@ public class Detectors {
 
         Imgproc.rectangle(this.frame, rectLimit(VideoController.videoSize)[0], rectLimit(VideoController.videoSize)[1], yellow,4);
 
-
         for (MatOfPoint cnt : contours) {
             MatOfPoint2f cnt2f = new MatOfPoint2f();
             cnt.convertTo(cnt2f, CvType.CV_32F);
@@ -84,7 +83,7 @@ public class Detectors {
             Imgproc.minEnclosingCircle(cnt2f, center, radius);
 
             for(float r : radius) {
-                if ((int)r > blobRadiusThresh && (int)r < 20) {
+                if ((int)r > blobRadiusThresh && (int)r < 30) {
                     Imgproc.circle(this.frame, center, (int)r, green, 2);
                     centers.add(center);
                 }
@@ -95,32 +94,32 @@ public class Detectors {
     }
 
 
-    private Point[] rectLimit(String videoSize) {
-        Point pSupLeft = null;
-        Point pInfRight = null;
+    public Point[] rectLimit(String videoSize) {
+        Point tl = null;
+        Point br = null;
 
         switch (videoSize) {
             case "360p" :
-                pSupLeft = new Point(70, 10);
-                pInfRight = new Point(570, 300);
+                tl = new Point(70, 10);
+                br = new Point(570, 300);
                 break;
             case "540p" :
-                pSupLeft = new Point(100, 20);
-                pInfRight = new Point(870, 460);
+                tl = new Point(100, 20);
+                br = new Point(870, 460);
                 break;
             case "720p" :
-                pSupLeft = new Point(130, 30);
-                pInfRight = new Point(1170, 610);
+                tl = new Point(130, 30);
+                br = new Point(1170, 610);
                 break;
             case "1080p" :
-                pSupLeft = new Point(100, 20);
-                pInfRight = new Point(870, 460);
+                tl = new Point(100, 20);
+                br = new Point(870, 460);
                 break;
         }
 
-        assertNotNull(pSupLeft);
-        assertNotNull(pInfRight);
+        assertNotNull(tl);
+        assertNotNull(br);
 
-        return new Point[]{pSupLeft, pInfRight};
+        return new Point[]{tl, br};
     }
 }

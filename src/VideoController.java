@@ -4,7 +4,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.text.Text;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -15,6 +17,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * The controller associated with the only view of our application. The
@@ -37,6 +42,9 @@ public class VideoController {
     @FXML
     private Slider threshold;
 
+    @FXML
+    private Label entrancesText;
+
     // a timer for acquiring the video stream
     private ScheduledExecutorService timer;
     // the OpenCV object that realizes the video capture
@@ -46,13 +54,16 @@ public class VideoController {
     // the logo to be loaded
     private Mat logo;
 
-    public static final String videoSize = "540p";
-    private String framerateVideo = "60fps";
+    public static final String videoSize = "720p";
+    private int framerate = 60;
+    private String framerateVideo = framerate+"fps";
     private String shadow = "ombre";
+
+    private int slowFactor = 1;
 
     private String videoUrl = "/Users/yohannmbp/Desktop/video_test/v0/"+framerateVideo+"/"+videoSize+"_"+shadow+".mov";
 
-    private Tracker tracker = new Tracker(200, 30, 300, 100);
+    private Tracker tracker = new Tracker(250, 30, 1, 100);
 
     // Color
     private final Scalar blue = new Scalar(255, 0, 0);
@@ -66,6 +77,23 @@ public class VideoController {
     private final Scalar purpleblack = new Scalar(127, 0, 127);
 
     private final ArrayList<Scalar> trackColors = new ArrayList<>();
+
+    private final Rect rect = new Rect(Detectors.getInstance().rectLimit(VideoController.videoSize)[0],
+            Detectors.getInstance().rectLimit(VideoController.videoSize)[1]);
+
+    private ArrayList<Integer> entrancesId = new ArrayList<>();
+    private ArrayList<Integer> departuresId = new ArrayList<>();
+    private ArrayList<Integer> flybyId = new ArrayList<>();
+    private ArrayList<Integer> idInArea = new ArrayList<>();
+
+    private ArrayList<Integer> entrancesIdDrawn = new ArrayList<>();
+    private ArrayList<Integer> departuresIdDrawn = new ArrayList<>();
+    private ArrayList<Integer> flybyIdDrawn = new ArrayList<>();
+
+    private ArrayList<Integer> crossBottomId = new ArrayList<>();
+    private ArrayList<Integer> crossTopId = new ArrayList<>();
+    private ArrayList<Integer> crossLeftId = new ArrayList<>();
+    private ArrayList<Integer> crossRightId = new ArrayList<>();
 
 
     /**
@@ -93,9 +121,11 @@ public class VideoController {
     @FXML
     protected void startCamera() {
         // set a fixed width for the frame
-        this.currentFrame.setFitWidth(600);
+        this.currentFrame.setFitWidth(900);
         // preserve image ratio
         this.currentFrame.setPreserveRatio(true);
+
+        this.entrancesText = new Label("Entrances : " + entrancesId.size());
 
         if (!this.cameraActive) {
             // start the video capture
@@ -105,7 +135,7 @@ public class VideoController {
             if (this.capture.isOpened()) {
                 this.cameraActive = true;
 
-                // grab a frame every 33 ms (30 frames/sec)
+                // grab a frame every 16 ms (60 frames/sec)
                 Runnable frameGrabber = new Runnable() {
 
                     @Override
@@ -119,7 +149,7 @@ public class VideoController {
                 };
 
                 this.timer = Executors.newSingleThreadScheduledExecutor();
-                this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
+                this.timer.scheduleAtFixedRate(frameGrabber, 0, slowFactor*1000/framerate, TimeUnit.MILLISECONDS);
 
                 // update the button content
                 this.button.setText("Stop Camera");
@@ -168,6 +198,58 @@ public class VideoController {
                             Point pt1 = tracker.getTracks().get(i).getTrace().get(j);
                             Point pt2 = tracker.getTracks().get(i).getTrace().get(j+1);
 
+                            Integer trackId = tracker.getTracks().get(i).getTrack_id();
+
+                            /////////// Entrances in area ///////////
+                            if(Counter.getInstance(rect).crossBottomIn(pt1, pt2, rect) && !crossBottomId.contains(trackId)) {
+                                crossBottomId.add(trackId);
+                            } else if(Counter.getInstance(rect).crossTopIn(pt1, pt2, rect) && !crossTopId.contains(trackId)) {
+                                crossTopId.add(trackId);
+                            } else if(Counter.getInstance(rect).crossLeftIn(pt1, pt2, rect) && !crossLeftId.contains(trackId)) {
+                                crossLeftId.add(trackId);
+                            } else if(Counter.getInstance(rect).crossRightIn(pt1, pt2, rect) && !crossRightId.contains(trackId)) {
+                                crossRightId.add(trackId);
+                            }
+
+                            /////////// Entrances ///////////
+                            if(Counter.getInstance(rect).crossBottomOut(pt1, pt2, rect)) {
+                                if(crossLeftId.contains(trackId) || crossRightId.contains(trackId) || crossTopId.contains(trackId)) {
+                                    entrancesId.add(trackId);
+                                    entrancesIdDrawn.add(trackId);
+                                }
+                            }
+
+                            /////////// Departures ///////////
+                            if((Counter.getInstance(rect).crossLeftOut(pt1, pt2, rect)
+                                    || Counter.getInstance(rect).crossRightOut(pt1, pt2, rect)
+                                    || Counter.getInstance(rect).crossTopOut(pt1, pt2, rect)) && crossBottomId.contains(trackId)) {
+                                departuresId.add(trackId);
+                                departuresId.add(trackId);
+                            }
+
+                            /////////// Flyby ///////////
+                            // Left TO (Top or Right)
+                            if(crossLeftId.contains(trackId)
+                                    && (Counter.getInstance(rect).crossTopOut(pt1, pt2, rect)
+                                    || Counter.getInstance(rect).crossRightOut(pt1, pt2, rect))) {
+                                flybyId.add(trackId);
+                                flybyId.add(trackId);
+                            }
+                            // Right TO (Top or Left)
+                            if(crossRightId.contains(trackId)
+                                    && (Counter.getInstance(rect).crossTopOut(pt1, pt2, rect)
+                                    || Counter.getInstance(rect).crossLeftOut(pt1, pt2, rect))) {
+                                flybyId.add(trackId);
+                                flybyId.add(trackId);
+                            }
+                            // Top TO (Left or Right)
+                            if(crossTopId.contains(trackId) && (Counter.getInstance(rect).crossLeftOut(pt1, pt2, rect)
+                                    || Counter.getInstance(rect).crossRightOut(pt1, pt2, rect))) {
+                                flybyId.add(trackId);
+                                flybyId.add(trackId);
+                            }
+
+
                             int clr = tracker.getTracks().get(i).getTrack_id() % 9;
                             Imgproc.line(frame, pt1, pt2, trackColors.get(clr), 2);
                         }
@@ -175,6 +257,9 @@ public class VideoController {
                 }
 
             }
+
+            System.out.println("Entrances : " + entrancesId.size()+"   ||   "+"Departures : "+departuresId.size()+"   ||   "+"Flyby : "+flybyId.size());
+
 
             frame = Detectors.getInstance().getFrame();
         }

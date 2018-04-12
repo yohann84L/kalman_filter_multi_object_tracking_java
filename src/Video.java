@@ -33,7 +33,7 @@ public class Video extends Application
 			// store the root element so that the controllers can use it
 			BorderPane rootElement = (BorderPane) loader.load();
 			// create and style a scene
-			Scene scene = new Scene(rootElement, 800, 600);
+			Scene scene = new Scene(rootElement, 1280, 720);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			// create the stage with the given title and the previously created
 			// scene
