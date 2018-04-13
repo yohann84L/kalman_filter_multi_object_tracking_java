@@ -6,4 +6,11 @@
 	<lib name="opencv-340.jar" scope="COMPILE">
 		<srcroot url="jar:///usr/local/Cellar/opencv/3.4.0_1/share/OpenCV/java/opencv-340.jar!/"/>
 	</lib>
+	<levels>
+		<level name="junit:junit:4.12" value="project"/>
+		<level name="com.google.guava:guava:18.0" value="project"/>
+		<level name="org.nd4j:nd4j-buffer:0.9.1" value="project"/>
+		<level name="org.slf4j:slf4j-jdk14:1.7.12" value="project"/>
+		<level name="org.ejml:ejml-all:0.33" value="project"/>
+	</levels>
 </component>

@@ -7,5 +7,11 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/usr/local/Cellar/opencv/3.4.0_1/share/OpenCV/java"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/junit:junit:4.12"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/com.google.guava:guava:18.0"/>
+	<classpathentry kind="var" path="USER_HOME/Downloads/nd4j-api-0.8.0.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/org.nd4j:nd4j-buffer:0.9.1"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/org.slf4j:slf4j-jdk14:1.7.12"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/org.ejml:ejml-all:0.33"/>
 	<classpathentry kind="output" path="out/production/kalman_java"/>
 </classpath>

@@ -54,7 +54,7 @@ public class VideoController {
     // the logo to be loaded
     private Mat logo;
 
-    public static final String videoSize = "720p";
+    public static final String videoSize = "1080p";
     private int framerate = 60;
     private String framerateVideo = framerate+"fps";
     private String shadow = "ombre";

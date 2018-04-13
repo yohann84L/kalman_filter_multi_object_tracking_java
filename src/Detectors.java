@@ -21,6 +21,10 @@ public class Detectors {
 
     private static Detectors instance = null;
 
+    private int blobRadiusThresh = 8;
+    private int blobRadiusThreshMax = 30;
+
+
     private BackgroundSubtractorMOG2 fgbg = Video.createBackgroundSubtractorMOG2();
 
     private Detectors() {
@@ -71,8 +75,6 @@ public class Detectors {
         Mat hierachy = new Mat();
         Imgproc.findContours(edges, contours, hierachy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-        int blobRadiusThresh = 8;
-
         Imgproc.rectangle(this.frame, rectLimit(VideoController.videoSize)[0], rectLimit(VideoController.videoSize)[1], yellow,4);
 
         for (MatOfPoint cnt : contours) {
@@ -83,7 +85,7 @@ public class Detectors {
             Imgproc.minEnclosingCircle(cnt2f, center, radius);
 
             for(float r : radius) {
-                if ((int)r > blobRadiusThresh && (int)r < 30) {
+                if ((int)r > blobRadiusThresh && (int)r < blobRadiusThreshMax) {
                     Imgproc.circle(this.frame, center, (int)r, green, 2);
                     centers.add(center);
                 }
@@ -102,18 +104,26 @@ public class Detectors {
             case "360p" :
                 tl = new Point(70, 10);
                 br = new Point(570, 300);
+                blobRadiusThresh = 4;
+                blobRadiusThreshMax = 20;
                 break;
             case "540p" :
                 tl = new Point(100, 20);
                 br = new Point(870, 460);
+                blobRadiusThresh = 6;
+                blobRadiusThreshMax = 30;
                 break;
             case "720p" :
                 tl = new Point(130, 30);
                 br = new Point(1170, 610);
+                blobRadiusThresh = 8;
+                blobRadiusThreshMax = 30;
                 break;
             case "1080p" :
-                tl = new Point(100, 20);
-                br = new Point(870, 460);
+                tl = new Point(200, 45);
+                br = new Point(1740, 910);
+                blobRadiusThresh = 12;
+                blobRadiusThreshMax = 50;
                 break;
         }
 
